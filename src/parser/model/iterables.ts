@@ -10,7 +10,7 @@ export type IterableGetter = (
   message: Message
 ) => Promise<Collection<string, any>>;
 
-export const IterableObjects: Record<string, IterableGetter | undefined> = {
+export const iterableObjects: Record<string, IterableGetter | undefined> = {
   users: getUsersIterable,
   channels: getChannelsIterable,
   roles: getRolesIterable,

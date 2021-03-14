@@ -5,10 +5,7 @@ import {
   GENERATED_PARSER_PATH,
   GRAMMAR_DEFINITION_FILE,
 } from "../configuration";
-
-const PARSER_IMPORTS = `
-import { ListCommand, ListArgs } from '../commands/list';
-`;
+import { PARSER_IMPORTS } from "../src/parser/parser-imports";
 
 (async () => {
   const grammar = await readFile(GRAMMAR_DEFINITION_FILE, {

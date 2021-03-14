@@ -1,13 +1,14 @@
 import { Message } from "discord.js";
 import { Command } from "../model/command";
-import { IterableGetter, IterableObjects } from "../model/iterables";
+import { IterableGetter, iterableObjects } from "../model/iterables";
+import { Filter, FilterUnion } from "./subcommands/filter";
 
 export class ListArgs {
   iterable: IterableGetter;
 
-  constructor(iterable: string) {
-    if (IterableObjects[iterable] !== undefined) {
-      this.iterable = IterableObjects[iterable];
+  constructor(iterable: string, public filters: Filter | FilterUnion) {
+    if (iterableObjects[iterable] !== undefined) {
+      this.iterable = iterableObjects[iterable];
     } else {
       throw "Unknown iterable";
     }
@@ -15,10 +16,13 @@ export class ListArgs {
 }
 
 export class ListCommand implements Command {
-  constructor(public args: ListArgs) {}
+  constructor(private args: ListArgs) {}
 
   async execute(message: Message): Promise<string> {
-    const iterable = await this.args.iterable(message);
-    return 
+    return JSON.stringify(
+      (await this.args.iterable(message)).filter((value) =>
+        this.args.filters.execute(value)
+      )
+    );
   }
 }

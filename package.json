@@ -4,9 +4,10 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "configure": "ts-node src/firstRun.ts",
     "generate-parser": "ts-node scripts/generateParser.ts",
-    "postinstall": "npm run generate-parser && ts-node scripts/firstRun.ts"
+    "postinstall": "npm run generate-parser && npm run configure",
+    "start": "ts-node src/index.ts"
   },
   "author": "Bartosz Barnaba Rajczyk",
   "license": "ISC",

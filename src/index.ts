@@ -1,5 +1,7 @@
 import * as Discord from "discord.js";
+import { inspect } from "util";
 import { loadSecrets } from "./config/loader";
+import { Command } from "./parser/model/command";
 const parser = require("./parser/generated/parser");
 
 const client = new Discord.Client();
@@ -9,14 +11,12 @@ client.on("ready", () => {
 });
 
 client.on("message", async (message) => {
+  if (message.author.id === client.user.id) return;
   // This is just PoC code
   try {
-    const result = parser.parse(message.content);
-    const commandResult: Discord.Collection<
-      string,
-      any
-    > = await result.args.iterable(message);
-    message.reply(commandResult.keyArray().join("\n"));
+    const result = parser.parse(message.content) as Command;
+    console.log(inspect(result, false, null, true));
+    message.reply(await result.execute(message));
   } catch (e) {
     console.log(e);
   }
