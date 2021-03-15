@@ -14,9 +14,11 @@ client.on("message", async (message) => {
   if (message.author.id === client.user.id) return;
   // This is just PoC code
   try {
-    const result = parser.parse(message.content) as Command;
-    console.log(inspect(result, false, null, true));
-    message.reply(await result.execute(message));
+    const parsingResult = parser.parse(message.content) as Command;
+    console.log(inspect(parsingResult, false, null, true));
+    const commandResult = await parsingResult.execute(message);
+    console.log(commandResult);
+    message.reply(commandResult);
   } catch (e) {
     console.log(e);
   }

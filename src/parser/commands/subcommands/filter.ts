@@ -1,11 +1,13 @@
 import { IterableSubcommand } from "../../model/command";
+import { ExecutionContext } from "../../model/execution-context";
+import { Value } from "../../model/value";
 
 const operatorMap: Record<
   string,
   (
     target: Record<string, any>,
     key: string,
-    value: string | number
+    value: any
   ) => boolean | undefined
 > = {
   "=": (target, key, value) => target[key] === value,
@@ -17,16 +19,12 @@ const operatorMap: Record<
 };
 
 export class Filter implements IterableSubcommand {
-  constructor(
-    private key: string,
-    private op: string,
-    private value: string | number
-  ) {
+  constructor(private key: string, private op: string, private value: Value) {
     if (operatorMap[op] === undefined) throw `Unknown operator ${op}`;
   }
 
-  execute(target: object): boolean {
-    return operatorMap[this.op](target, this.key, this.value);
+  execute(target: object, context: ExecutionContext): boolean {
+    return operatorMap[this.op](target, this.key, this.value.resolve(context));
   }
 }
 
@@ -41,18 +39,22 @@ export class FilterUnion implements IterableSubcommand {
     }
   }
 
-  execute(target: object): boolean {
+  execute(target: object, context: ExecutionContext): boolean {
     switch (this.op) {
       case "and":
-        return this.lhs.execute(target) && this.rhs.execute(target);
+        return (
+          this.lhs.execute(target, context) && this.rhs.execute(target, context)
+        );
       case "or":
-        return this.lhs.execute(target) || this.rhs.execute(target);
+        return (
+          this.lhs.execute(target, context) || this.rhs.execute(target, context)
+        );
     }
   }
 }
 
 export class PassFilter implements IterableSubcommand {
-  execute() { 
+  execute() {
     return true;
   }
 }

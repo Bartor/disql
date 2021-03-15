@@ -1,4 +1,5 @@
-# skript
+# disQL
+### Discord Query Language Bot
 
 This is an experimental Discord bot based on a generated parser of a domain-specific grammar created for this purpose.
 
