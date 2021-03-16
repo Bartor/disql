@@ -3,9 +3,11 @@
 const context = new ExecutionContext();
 }
 
-start = command
+start 
+    = command
+command 
+    = list / for / print / length / collect / get
 
-command = list / for / print / length / collect
 // COMMANDS
 
 // list - takes an IterableSource, allows filters and returns IterableSource 
@@ -78,6 +80,14 @@ collect_field
     = key:object_key _ ':' _ value:value
         { return new CollectField(key, value); }
 
+// get - returns field value
+get
+    = 'get' __ args:get_args
+        { return new GetCommand(args, context); }
+get_args
+    = key:object_key __ 'from' __ value:value 
+        { return new GetArgs(value, key); }
+
 // RELATED TO COMMANDS
 iterable_value
     // These return Value<iterable> instances
@@ -102,6 +112,7 @@ value
     / print
     / length
     / collect
+    / get
     // These return regular Value instances
     / num:number
         { return new Value('number', num); }

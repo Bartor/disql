@@ -3,16 +3,32 @@ import { ExecutionContext, Resolvable } from "./execution-context";
 import { iterableObjects } from "./iterables";
 import { inspect } from "util";
 
+export type ValueType =
+  | "number"
+  | "string"
+  | "boolean"
+  | "null"
+  | "object"
+  | "iterable" // special type for iteration commands results/iteration sources
+  | "reference"; // special type for ExecutionContext variable references
+
+export function isValueType(value: string): value is ValueType {
+  const allowedKey = [
+    "number",
+    "string",
+    "boolean",
+    "null",
+    "object",
+    "iterable", // special type for iteration commands results/iteration sources
+    "reference",
+  ];
+
+  return allowedKey.includes(value);
+}
+
 export class Value implements Resolvable {
   constructor(
-    public readonly type:
-      | "number"
-      | "string"
-      | "boolean"
-      | "null"
-      | "object"
-      | "iterable" // special type for iteration commands results/iteration sources
-      | "reference", // special type for ExecutionContext variable references
+    public readonly type: ValueType,
     public readonly value: string | number | boolean | null | object
   ) {}
 
