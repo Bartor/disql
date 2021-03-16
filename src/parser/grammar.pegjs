@@ -5,7 +5,7 @@ const context = new ExecutionContext();
 
 start = command
 
-command = list / for / print / length
+command = list / for / print / length / collect
 // COMMANDS
 
 // list - takes an IterableSource, allows filters and returns IterableSource 
@@ -62,6 +62,22 @@ legnth_args
     = value:value
         { return new LengthArgs(value); }
 
+// colect - returns a map of properties/values pairs
+collect
+    = 'collect' __ args:collect_args
+        { return new CollectCommand(args, context); }
+collect_args
+    = '{' _ fields:collect_some_fields? _ '}'
+        { return new CollectArgs(fields); }
+collect_some_fields
+    = head:collect_field _ ',' _ tail:collect_some_fields
+        { return [head, ...tail]; }
+    / field:collect_field
+        { return [field]; }
+collect_field
+    = key:object_key _ ':' _ value:value
+        { return new CollectField(key, value); }
+
 // RELATED TO COMMANDS
 iterable_value
     // These return Value<iterable> instances
@@ -85,6 +101,7 @@ value
     = iterable_value
     / print
     / length
+    / collect
     // These return regular Value instances
     / num:number
         { return new Value('number', num); }

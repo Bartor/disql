@@ -1,6 +1,7 @@
 import { Message } from "discord.js";
 import { ExecutionContext, Resolvable } from "./execution-context";
 import { iterableObjects } from "./iterables";
+import { inspect } from "util";
 
 export class Value implements Resolvable {
   constructor(
@@ -40,6 +41,8 @@ export class Value implements Resolvable {
 
   public toString(): string {
     switch (this.type) {
+      case "object":
+        return inspect(this.value, false, null, false);
       case "string":
         return this.value as string;
       case "null":
