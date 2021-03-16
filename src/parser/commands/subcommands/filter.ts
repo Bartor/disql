@@ -14,7 +14,7 @@ const operatorMap: Record<
   "<=": (compare, compareWith) => compare <= compareWith,
 };
 
-export class Filter {
+export class FilterCase {
   constructor(private key: string, private op: string, private value: Value) {
     if (operatorMap[op] === undefined) throw `Unknown operator ${op}`;
   }
@@ -35,11 +35,11 @@ export class Filter {
   }
 }
 
-export class FilterUnion {
+export class FilterCaseUnion {
   constructor(
-    private lhs: Filter | FilterUnion,
+    private lhs: FilterCase | FilterCaseUnion,
     private op: "or" | "and",
-    private rhs: Filter | FilterUnion
+    private rhs: FilterCase | FilterCaseUnion
   ) {
     if (op !== "or" && op !== "and") {
       throw `Unknown operator ${op}`;
@@ -66,7 +66,7 @@ export class FilterUnion {
   }
 }
 
-export class PassFilter {
+export class PassFilterCase {
   async execute(): Promise<boolean> {
     return Promise.resolve(true);
   }

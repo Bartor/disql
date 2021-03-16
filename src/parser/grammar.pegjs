@@ -5,38 +5,44 @@ const context = new ExecutionContext();
 
 start 
     = command
-command 
-    = list / for / print / length / collect / get
+command
+    = '(' expression:command_expression ')'
+        { return expression; }
+    / '(' expression:command ')'
+        { return expression; }
+    / command_expression
+command_expression
+    = filter / map / print / length / collect / get
 
 // COMMANDS
 
 // list - takes an IterableSource, allows filters and returns IterableSource 
-list
-    = 'list' __ args:list_args
-        { return new ListCommand(args, context); }
-list_args 
+filter
+    = 'filter' __ args:filter_args
+        { return new FilterCommand(args, context); }
+filter_args 
     = iterable:iterable_value filters:filters?
-        { return new ListArgs(iterable, filters ?? new PassFilter()); }
+        { return new FilterArgs(iterable, filters ?? new PassFilterCase()); }
 filters
-    = __ 'where' __ filter:filter_union
+    = __ 'on' __ filter:filter_union
         { return filter; }
 filter_union
     = '(' _ lhs:filter_union __ op:unions __ rhs:filter_union _ ')'
-        { return new FilterUnion(lhs, op, rhs); }
-    / filter
-filter 
+        { return new FilterCaseUnion(lhs, op, rhs); }
+    / filter_case
+filter_case 
     = key:object_key _ op:comparison _ value:value 
-        { return new Filter(key, op, value); }
+        { return new FilterCase(key, op, value); }
     / op:comparison _ value:value
-        { return new Filter(null, op, value); }
+        { return new FilterCase(null, op, value); }
 
-// for .. in .. do - binds a Value<reference> to ExecutionContext for each item of IterableSource
-for
-    = 'for' __ args:for_args
-        { return new ForInDoCommand(args, context); }
-for_args
-    = iteration_variable:object_key __ 'in' __ iteration_target:iterable_value __ 'do' __ command:command
-        { return new ForInDoArgs(iteration_variable, iteration_target, command); }
+// map .. in .. to - binds a Value<reference> to ExecutionContext for each item of IterableSource
+map
+    = 'map' __ args:map_args
+        { return new MapCommand(args, context); }
+map_args
+    = iteration_variable:object_key __ 'in' __ iteration_target:iterable_value __ 'to' __ command:command
+        { return new MapArgs(iteration_variable, iteration_target, command); }
 
 // print - converts Value<any> to Value<string>
 print
@@ -88,11 +94,19 @@ get_args
     = key:object_key __ 'from' __ value:value 
         { return new GetArgs(value, key); }
 
+
 // RELATED TO COMMANDS
 iterable_value
+    = '(' expression:iterable_expression ')'
+        { return expression; }
+    / '(' expression:iterable_value ')'
+        { return expression; }
+    / iterable_expression
+
+iterable_expression
     // These return Value<iterable> instances
-    = list
-    / for
+    = filter
+    / map
     // Thesre return predefined Value<iterable> instance
     / 'users'
         { return new Value('iterable', 'users'); }
@@ -107,6 +121,12 @@ comparison
 
 // VALUES
 value
+    = '(' expression:value_expression ')'
+        { return expression; }
+    / '(' expression:value ')'
+        { return expression; }
+    / value_expression
+value_expression
     // These return Value<iterable> instances
     = iterable_value
     / print

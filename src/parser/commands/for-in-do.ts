@@ -3,7 +3,7 @@ import { Command } from "../model/command";
 import { ExecutionContext, Resolvable } from "../model/execution-context";
 import { Value } from "../model/value";
 
-export class ForInDoArgs {
+export class MapArgs {
   constructor(
     public variableIdentifier: string,
     public iterationTarget: Value,
@@ -11,8 +11,8 @@ export class ForInDoArgs {
   ) {}
 }
 
-export class ForInDoCommand implements Command, Resolvable {
-  constructor(private args: ForInDoArgs, private context: ExecutionContext) {}
+export class MapCommand implements Command, Resolvable {
+  constructor(private args: MapArgs, private context: ExecutionContext) {}
 
   async execute(message: Message): Promise<Value> {
     const result = [];

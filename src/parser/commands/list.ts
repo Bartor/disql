@@ -2,14 +2,14 @@ import { Message } from "discord.js";
 import { Command } from "../model/command";
 import { ExecutionContext, Resolvable } from "../model/execution-context";
 import { Value } from "../model/value";
-import { Filter, FilterUnion } from "./subcommands/filter";
+import { FilterCase, FilterCaseUnion } from "./subcommands/filter";
 
-export class ListArgs {
-  constructor(public iterable: Value, public filters: Filter | FilterUnion) {}
+export class FilterArgs {
+  constructor(public iterable: Value, public filters: FilterCase | FilterCaseUnion) {}
 }
 
-export class ListCommand implements Command, Resolvable {
-  constructor(private args: ListArgs, private context: ExecutionContext) {}
+export class FilterCommand implements Command, Resolvable {
+  constructor(private args: FilterArgs, private context: ExecutionContext) {}
 
   async execute(message: Message): Promise<Value> {
     const iterableValue = (await this.args.iterable.resolve(
