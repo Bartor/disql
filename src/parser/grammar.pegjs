@@ -25,6 +25,8 @@ filter_union
 filter 
     = key:object_key _ op:comparison _ value:value 
         { return new Filter(key, op, value); }
+    / op:comparison _ value:value
+        { return new Filter(null, op, value); }
 
 // for .. in .. do - binds a Value<reference> to ExecutionContext for each item of IterableSource
 for

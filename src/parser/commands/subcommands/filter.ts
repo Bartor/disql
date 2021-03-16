@@ -4,14 +4,14 @@ import { Value } from "../../model/value";
 
 const operatorMap: Record<
   string,
-  (target: Record<string, any>, key: string, value: any) => boolean | undefined
+  (compare: any, compareWith: any) => boolean | undefined
 > = {
-  "=": (target, key, value) => target[key] === value,
-  "<>": (target, key, value) => target[key] !== value,
-  ">": (target, key, value) => target[key] > value,
-  "<": (target, key, value) => target[key] < value,
-  ">=": (target, key, value) => target[key] >= value,
-  "<=": (target, key, value) => target[key] <= value,
+  "=": (compare, compareWith) => compare === compareWith,
+  "<>": (compare, compareWith) => compare !== compareWith,
+  ">": (compare, compareWith) => compare > compareWith,
+  "<": (compare, compareWith) => compare < compareWith,
+  ">=": (compare, compareWith) => compare >= compareWith,
+  "<=": (compare, compareWith) => compare <= compareWith,
 };
 
 export class Filter {
@@ -26,7 +26,12 @@ export class Filter {
   ): Promise<boolean> {
     const targetValue = await target.resolve(context, message);
     const valueValue = await this.value.resolve(context, message);
-    return operatorMap[this.op](targetValue, this.key, valueValue);
+
+    if (this.key === null) {
+      return operatorMap[this.op](targetValue, valueValue);
+    } else {
+      return operatorMap[this.op](targetValue[this.key], valueValue);
+    }
   }
 }
 

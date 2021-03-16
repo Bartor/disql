@@ -16,12 +16,13 @@ export class ListCommand implements Command, Resolvable {
       this.context,
       message
     )) as Array<Value>;
-    return new Value(
-      "iterable",
-      iterableValue.filter((value) =>
-        this.args.filters.execute(value, this.context, message)
-      )
-    );
+    const result = [];
+    for (let value of iterableValue) {
+      if (await this.args.filters.execute(value, this.context, message)) {
+        result.push(value);
+      }
+    }
+    return new Value("iterable", result);
   }
 
   resolve(_, message: Message): Promise<any> {

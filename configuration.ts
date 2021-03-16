@@ -15,3 +15,4 @@ export const GENERATED_PARSER_DIR = join(
   "generated"
 );
 export const GENERATED_PARSER_PATH = join(GENERATED_PARSER_DIR, "parser.ts");
+export const COMMAND_PREFIX = "/";
