@@ -18,7 +18,7 @@ client.on("message", async (message) => {
     console.log(inspect(parsingResult, false, null, true));
     const commandResult = await parsingResult.execute(message);
     console.log(commandResult);
-    message.reply(commandResult);
+    message.reply(commandResult.toString());
   } catch (e) {
     console.log(e);
   }

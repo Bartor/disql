@@ -1,14 +1,10 @@
-import { IterableSubcommand } from "../../model/command";
+import { Message } from "discord.js";
 import { ExecutionContext } from "../../model/execution-context";
 import { Value } from "../../model/value";
 
 const operatorMap: Record<
   string,
-  (
-    target: Record<string, any>,
-    key: string,
-    value: any
-  ) => boolean | undefined
+  (target: Record<string, any>, key: string, value: any) => boolean | undefined
 > = {
   "=": (target, key, value) => target[key] === value,
   "<>": (target, key, value) => target[key] !== value,
@@ -18,17 +14,23 @@ const operatorMap: Record<
   "<=": (target, key, value) => target[key] <= value,
 };
 
-export class Filter implements IterableSubcommand {
+export class Filter {
   constructor(private key: string, private op: string, private value: Value) {
     if (operatorMap[op] === undefined) throw `Unknown operator ${op}`;
   }
 
-  execute(target: object, context: ExecutionContext): boolean {
-    return operatorMap[this.op](target, this.key, this.value.resolve(context));
+  async execute(
+    target: Value,
+    context: ExecutionContext,
+    message: Message
+  ): Promise<boolean> {
+    const targetValue = await target.resolve(context, message);
+    const valueValue = await this.value.resolve(context, message);
+    return operatorMap[this.op](targetValue, this.key, valueValue);
   }
 }
 
-export class FilterUnion implements IterableSubcommand {
+export class FilterUnion {
   constructor(
     private lhs: Filter | FilterUnion,
     private op: "or" | "and",
@@ -39,22 +41,28 @@ export class FilterUnion implements IterableSubcommand {
     }
   }
 
-  execute(target: object, context: ExecutionContext): boolean {
+  async execute(
+    target: Value,
+    context: ExecutionContext,
+    message: Message
+  ): Promise<boolean> {
     switch (this.op) {
       case "and":
         return (
-          this.lhs.execute(target, context) && this.rhs.execute(target, context)
+          (await this.lhs.execute(target, context, message)) &&
+          (await this.rhs.execute(target, context, message))
         );
       case "or":
         return (
-          this.lhs.execute(target, context) || this.rhs.execute(target, context)
+          (await this.lhs.execute(target, context, message)) ||
+          (await this.rhs.execute(target, context, message))
         );
     }
   }
 }
 
-export class PassFilter implements IterableSubcommand {
-  execute() {
-    return true;
+export class PassFilter {
+  async execute(): Promise<boolean> {
+    return Promise.resolve(true);
   }
 }

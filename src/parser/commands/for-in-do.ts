@@ -1,26 +1,37 @@
 import { Message } from "discord.js";
-import { Command, CommandArgs } from "../model/command";
-import { ExecutionContext } from "../model/execution-context";
-import { IterableSource } from "../model/iterables";
+import { Command } from "../model/command";
+import { ExecutionContext, Resolvable } from "../model/execution-context";
+import { Value } from "../model/value";
 
-export class ForInDoArgs implements CommandArgs {
+export class ForInDoArgs {
   constructor(
     public variableIdentifier: string,
-    public iterationTarget: IterableSource,
+    public iterationTarget: Value,
     public command: Command
   ) {}
 }
 
-export class ForInDoCommand implements Command {
+export class ForInDoCommand implements Command, Resolvable {
   constructor(private args: ForInDoArgs, private context: ExecutionContext) {}
 
-  async execute(message: Message): Promise<Array<any>> {
+  async execute(message: Message): Promise<Value> {
     const result = [];
-    for (let element of await this.args.iterationTarget.execute(message)) {
+    const iterationElements = await this.args.iterationTarget.resolve(
+      this.context,
+      message
+    );
+    for (let element of iterationElements) {
       this.context.pushVariable(this.args.variableIdentifier, element);
-      result.push(await this.args.command.execute(message));
+      const commandResult = await this.args.command.execute(message);
+      result.push(commandResult);
       this.context.popVariable(this.args.variableIdentifier);
     }
-    return result;
+    return new Value("iterable", result);
+  }
+
+  resolve(_, message: Message): Promise<any> {
+    return this.execute(message).then((value) =>
+      value.resolve(this.context, message)
+    );
   }
 }

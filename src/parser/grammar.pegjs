@@ -5,15 +5,15 @@ const context = new ExecutionContext();
 
 start = command
 
-command = list / for / print
+command = list / for / print / length
 // COMMANDS
 
-// list - takes an ITERABLE and generates (filtered) ITERABLE 
+// list - takes an IterableSource, allows filters and returns IterableSource 
 list
     = 'list' __ args:list_args
         { return new ListCommand(args, context); }
 list_args 
-    = iterable:iterable filters:filters?
+    = iterable:iterable_value filters:filters?
         { return new ListArgs(iterable, filters ?? new PassFilter()); }
 filters
     = __ 'where' __ filter:filter_union
@@ -26,15 +26,15 @@ filter
     = key:object_key _ op:comparison _ value:value 
         { return new Filter(key, op, value); }
 
-// for .. in .. do - binds a VARIABLE as an item of ITERABLE and exectus COMMAND
+// for .. in .. do - binds a Value<reference> to ExecutionContext for each item of IterableSource
 for
     = 'for' __ args:for_args
         { return new ForInDoCommand(args, context); }
 for_args
-    = iteration_variable:object_key __ 'in' __ iteration_target:iterable __ 'do' __ command:command
+    = iteration_variable:object_key __ 'in' __ iteration_target:iterable_value __ 'do' __ command:command
         { return new ForInDoArgs(iteration_variable, iteration_target, command); }
 
-// print - converts value to string
+// print - converts Value<any> to Value<string>
 print
     = 'print' __ args:print_args
         { return new PrintCommand(args, context); }
@@ -52,15 +52,26 @@ print_some_fields
 print_field
     = value
 
+// length - return Value<number> of length of Value
+length
+    = 'length' __ args:legnth_args
+        { return new LengthCommand(args, context); }
+legnth_args
+    = value:value
+        { return new LengthArgs(value); }
+
 // RELATED TO COMMANDS
-iterable
-    = 'users'
-        { return new IterableSource('users'); }
+iterable_value
+    // These return Value<iterable> instances
+    = list
+    / for
+    // Thesre return predefined Value<iterable> instance
+    / 'users'
+        { return new Value('iterable', 'users'); }
     / 'roles'
-        { return new IterableSource('roles'); }
+        { return new Value('iterable', 'roles'); }
     / 'channels'
-        { return new IterableSource('channels'); }
-    / list
+        { return new Value('iterable', 'channels'); }
 unions
     = 'and' / 'or'
 comparison
@@ -68,14 +79,30 @@ comparison
 
 // VALUES
 value
-    = num:number
+    // These return Value<iterable> instances
+    = iterable_value
+    / print
+    / length
+    // These return regular Value instances
+    / num:number
         { return new Value('number', num); }
     / str:string 
         { return new Value('string', str); }
+    / boolean:boolean
+        { return new Value('boolean', boolean); }
+    / null 
+        { return new Value('null', null); }
     / reference:object_key
         { return new Value('reference', reference); }
+boolean
+    = 'true'
+        { return true; }
+    / 'false'
+        { return false; }
+null
+    = 'null'
 object_key
-    = key:[a-zA-Z]+[a-zA-Z0-9]* 
+    = key:[_$a-zA-Z]+[_$a-zA-Z0-9]* 
         { return key.flat().join(''); }
 string
     = '"' chars:[^"]+ '"' 
@@ -84,7 +111,7 @@ string
         { return chars.join(''); }
 number
     = integral:('0' / [1-9][0-9]*) fraction:("." [0-9]*)? 
-        { return Number.parseFloat(integral.flat().join('') + (fraction ?? []).flat().join('')); }
+        { return Number.parseFloat((Array.isArray(integral) ? integral.flat().join('') : integral) + (fraction ?? []).flat().join('')); }
 _
     = ' '*
 __

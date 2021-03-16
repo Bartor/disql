@@ -1,14 +1,17 @@
-export class ExecutionContext {
-  private variables: Record<string, any | undefined> = {};
+import { Message } from "discord.js";
+import { Value } from "./value";
 
-  public resolveVariable(identifier: string): any {
+export class ExecutionContext {
+  private variables: Record<string, Value | undefined> = {};
+
+  public resolveVariable(identifier: string): Value {
     if (this.variables[identifier] === undefined)
       throw `Unknown variable ${identifier}`;
 
     return this.variables[identifier];
   }
 
-  public pushVariable(identifier: string, value: any) {
+  public pushVariable(identifier: string, value: Value) {
     this.variables[identifier] = value;
   }
 
@@ -18,5 +21,5 @@ export class ExecutionContext {
 }
 
 export interface Resolvable {
-  resolve: (context: ExecutionContext) => Promise<any>;
+  resolve: (context: ExecutionContext, message: Message) => Promise<Value>;
 }
