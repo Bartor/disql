@@ -41,7 +41,9 @@ map
     = 'map' __ args:map_args
         { return new MapCommand(args, context); }
 map_args
-    = iteration_variable:object_key __ 'in' __ iteration_target:iterable_value __ 'into' __ command:command
+    = iteration_variable:object_key _ ',' _ index_variable:object_key __ 'in' __ iteration_target:iterable_value __ 'into' __ command:command
+        { return new MapArgs(iteration_variable, iteration_target, command, index_variable); }
+    / iteration_variable:object_key __ 'in' __ iteration_target:iterable_value __ 'into' __ command:command
         { return new MapArgs(iteration_variable, iteration_target, command); }
 
 // print - converts Value<any> to Value<string>
@@ -99,7 +101,7 @@ rename
     = 'rename' __ args:rename_args
         { return new RenameCommand(args, context); }
 rename_args
-    = object:value __ 'to' __ newName:string
+    = object:value __ 'to' __ newName:value
         { return new RenameArgs(object, newName); }
 
 range

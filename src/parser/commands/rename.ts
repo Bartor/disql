@@ -7,25 +7,33 @@ import {
 } from "discord.js";
 import { Command } from "../model/command";
 import { ExecutionContext, Resolvable } from "../model/execution-context";
-import { Value } from "../model/value";
+import { ResolvedValue, Value } from "../model/value";
 
 export class RenameArgs {
-  constructor(public object: Value, public newName: string) {}
+  constructor(public object: Value, public newName: Value) {}
 }
 
 export class RenameCommand implements Command, Resolvable {
   constructor(private args: RenameArgs, private context: ExecutionContext) {}
 
   async execute(message: Message): Promise<Value> {
-    const object = await this.args.object.resolve(this.context, message);
+    const [, object] = await this.args.object.resolve(this.context, message);
+    const [newNameType, newName] = await this.args.newName.resolve(
+      this.context,
+      message
+    );
+
+    if (newNameType !== "string") {
+      throw "Cannot rename to non-string value";
+    }
 
     try {
       if (object instanceof GuildChannel) {
-        await object.edit({ name: this.args.newName });
+        await object.edit({ name: newName });
       } else if (object instanceof GuildMember) {
-        await object.setNickname(this.args.newName);
+        await object.setNickname(newName);
       } else if (object instanceof Role) {
-        await object.setName(this.args.newName);
+        await object.setName(newName);
       } else {
         throw "Given object cannot be renamed";
       }
@@ -45,7 +53,7 @@ export class RenameCommand implements Command, Resolvable {
     return new Value("object", object);
   }
 
-  async resolve(_, message: Message): Promise<Value> {
+  async resolve(_, message: Message): Promise<ResolvedValue> {
     return this.execute(message).then((value) =>
       value.resolve(this.context, message)
     );

@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { Value } from "./value";
+import { ResolvedValue, Value } from "./value";
 
 export class ExecutionContext {
   private variables: Record<string, Value | undefined> = {};
@@ -21,5 +21,5 @@ export class ExecutionContext {
 }
 
 export interface Resolvable {
-  resolve: (context: ExecutionContext, message: Message) => Promise<Value>;
+  resolve: (context: ExecutionContext, message: Message) => Promise<ResolvedValue>;
 }

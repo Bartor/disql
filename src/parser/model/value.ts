@@ -28,37 +28,46 @@ export function isValueType(value: string): value is ValueType {
   return allowedKey.includes(value);
 }
 
+export type ResolvedValue = [type: ValueType, value: any];
+
 export class Value implements Resolvable {
   constructor(
     public readonly type: ValueType,
     public readonly value: string | number | boolean | null | object
   ) {}
 
-  async resolve(context: ExecutionContext, message: Message): Promise<any> {
-    let value: any;
+  async resolve(
+    context: ExecutionContext,
+    message: Message
+  ): Promise<ResolvedValue> {
+    let resolved: ResolvedValue;
     switch (this.type) {
       case "reference":
-        value = context.resolveVariable(this.value as string);
+        resolved = await context
+          .resolveVariable(this.value as string)
+          .resolve(context, message);
         break;
       case "iterable":
         if (typeof this.value === "string") {
-          value = await iterableObjects[this.value](message);
+          resolved = ["iterable", iterableObjects[this.value](message)];
         } else {
-          value = this.value;
+          resolved = [this.type, this.value];
         }
         break;
       default:
-        value = this.value;
+        resolved = [this.type, this.value];
         break;
     }
 
-    return value instanceof Value
-      ? await value.resolve(context, message)
-      : value;
+    return resolved;
   }
 
   public toString(): string {
     switch (this.type) {
+      case "error":
+        return `ERROR: ${this.value}`;
+      case "iterable":
+        return `[\n${(this.value as Array<Value>).join("\n")}\n]`;
       case "object":
         return inspect(this.value, false, null, false);
       case "string":

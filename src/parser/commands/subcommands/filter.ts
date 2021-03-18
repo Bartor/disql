@@ -24,8 +24,8 @@ export class FilterCase {
     context: ExecutionContext,
     message: Message
   ): Promise<boolean> {
-    const targetValue = await target.resolve(context, message);
-    const valueValue = await this.value.resolve(context, message);
+    const [, targetValue] = await target.resolve(context, message);
+    const [, valueValue] = await this.value.resolve(context, message);
 
     if (this.key === null) {
       return operatorMap[this.op](targetValue, valueValue);

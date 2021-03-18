@@ -23,9 +23,12 @@ client.on("message", async (message) => {
     console.log("AST:", inspect(parsingResult, false, null, true));
     const commandResult = await parsingResult.execute(message);
     console.log("RESULT:", inspect(commandResult, false, null, true));
-    message.reply(commandResult.toString(), {
-      split: true,
-    });
+    const stringified = commandResult.toString();
+    message.reply(
+      stringified.length >= 2000
+        ? "Command successful (result too long to display)"
+        : stringified
+    );
   } catch (e) {
     console.error(e);
 

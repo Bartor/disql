@@ -2,19 +2,13 @@ import { Message } from "discord.js";
 import { Value } from "./value";
 
 const getUsersIterable = (message: Message) =>
-  Promise.resolve(
-    message.guild.members.cache.array().map((e) => new Value("object", e))
-  );
+  message.guild.members.cache.array().map((e) => new Value("object", e));
 const getChannelsIterable = (message: Message) =>
-  Promise.resolve(
-    message.guild.channels.cache.array().map((e) => new Value("object", e))
-  );
+  message.guild.channels.cache.array().map((e) => new Value("object", e));
 const getRolesIterable = (message: Message) =>
-  Promise.resolve(
-    message.guild.roles.cache.array().map((e) => new Value("object", e))
-  );
+  message.guild.roles.cache.array().map((e) => new Value("object", e));
 
-export type IterableGetter = (message: Message) => Promise<Array<Value>>;
+export type IterableGetter = (message: Message) => Array<Value>;
 
 export const iterableObjects: Record<string, IterableGetter | undefined> = {
   users: getUsersIterable,
