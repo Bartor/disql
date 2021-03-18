@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Base, Message } from "discord.js";
 import { ExecutionContext, Resolvable } from "./execution-context";
 import { iterableObjects } from "./iterables";
 import { inspect } from "util";
@@ -9,6 +9,7 @@ export type ValueType =
   | "boolean"
   | "null"
   | "object"
+  | "error" // special type for execution errors
   | "iterable" // special type for iteration commands results/iteration sources
   | "reference"; // special type for ExecutionContext variable references
 
@@ -19,8 +20,9 @@ export function isValueType(value: string): value is ValueType {
     "boolean",
     "null",
     "object",
+    "error", // special type for execution errors
     "iterable", // special type for iteration commands results/iteration sources
-    "reference",
+    "reference", // special type for ExecutionContext variable references
   ];
 
   return allowedKey.includes(value);

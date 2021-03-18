@@ -6,6 +6,7 @@ import { Command } from "./parser/model/command";
 const parser = require("./parser/generated/parser");
 
 const client = new Discord.Client();
+export const CLIENT_INSTANCE = client;
 
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.username}`);
@@ -22,16 +23,20 @@ client.on("message", async (message) => {
     console.log("AST:", inspect(parsingResult, false, null, true));
     const commandResult = await parsingResult.execute(message);
     console.log("RESULT:", inspect(commandResult, false, null, true));
-    message.reply(commandResult.toString());
+    message.reply(commandResult.toString(), {
+      split: true,
+    });
   } catch (e) {
     console.error(e);
 
     if (typeof e === "string") {
       message.reply(e);
+    } else if (e instanceof Discord.DiscordAPIError) {
+      message.reply("There was a problem with Discord API");
     } else {
       message.reply(
         `incorrect command syntax; expected ${e.expected
-          .map((e) => `\`${e.text}\``)
+          .map((e) => `\`${e.text ?? e.parts}\``)
           .join(", ")}, but got \`${e.found}\` on position ${
           e.location.start.offset
         }`

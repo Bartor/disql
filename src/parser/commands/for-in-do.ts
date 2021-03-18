@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import { Command } from "../model/command";
 import { ExecutionContext, Resolvable } from "../model/execution-context";
-import { Value } from "../model/value";
+import { Value, ValueType } from "../model/value";
 
 export class MapArgs {
   constructor(

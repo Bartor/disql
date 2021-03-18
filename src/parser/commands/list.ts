@@ -5,7 +5,10 @@ import { Value } from "../model/value";
 import { FilterCase, FilterCaseUnion } from "./subcommands/filter";
 
 export class FilterArgs {
-  constructor(public iterable: Value, public filters: FilterCase | FilterCaseUnion) {}
+  constructor(
+    public iterable: Value,
+    public filters: FilterCase | FilterCaseUnion
+  ) {}
 }
 
 export class FilterCommand implements Command, Resolvable {
@@ -16,13 +19,15 @@ export class FilterCommand implements Command, Resolvable {
       this.context,
       message
     )) as Array<Value>;
-    const result = [];
-    for (let value of iterableValue) {
-      if (await this.args.filters.execute(value, this.context, message)) {
-        result.push(value);
-      }
-    }
-    return new Value("iterable", result);
+    const results = await Promise.all(
+      iterableValue.map((value) =>
+        this.args.filters.execute(value, this.context, message)
+      )
+    );
+    return new Value(
+      "iterable",
+      iterableValue.filter((_, i) => results[i])
+    );
   }
 
   resolve(_, message: Message): Promise<any> {

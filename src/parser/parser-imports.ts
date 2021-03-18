@@ -8,4 +8,6 @@ import { LengthCommand, LengthArgs } from '../commands/length';
 import { CollectCommand, CollectArgs, CollectField } from '../commands/collect';
 import { GetCommand, GetArgs } from '../commands/get';
 import { PrintCommand, PrintArgs } from '../commands/print';
+import { RenameCommand, RenameArgs } from '../commands/rename';
+import { RangeCommand, RangeArgs } from '../commands/range';
 `;

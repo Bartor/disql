@@ -4,19 +4,20 @@ import { ExecutionContext, Resolvable } from "../model/execution-context";
 import { isValueType, Value } from "../model/value";
 
 export class GetArgs {
-  constructor(public value: Value, public field: string) {}
+  constructor(public value: Value, public key: Value) {}
 }
 
 export class GetCommand implements Command, Resolvable {
   constructor(private args: GetArgs, private context: ExecutionContext) {}
 
   async execute(message: Message): Promise<Value> {
+    const key = await this.args.key.resolve(this.context, message);
     const value = await this.args.value.resolve(this.context, message);
     const valueType = typeof value;
     if (isValueType(valueType)) {
-      return new Value(valueType, value[this.args.field]);
+      return new Value(valueType, value[key]);
     } else {
-      return new Value("object", value[this.args.field]);
+      return new Value("object", value[key]);
     }
   }
 

@@ -2,11 +2,9 @@ import { Message } from "discord.js";
 import { Value } from "./value";
 
 const getUsersIterable = (message: Message) =>
-  message.guild.members
-    .fetch()
-    .then((collection) =>
-      collection.array().map((e) => new Value("object", e))
-    );
+  Promise.resolve(
+    message.guild.members.cache.array().map((e) => new Value("object", e))
+  );
 const getChannelsIterable = (message: Message) =>
   Promise.resolve(
     message.guild.channels.cache.array().map((e) => new Value("object", e))

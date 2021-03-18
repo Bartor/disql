@@ -12,7 +12,7 @@ command
         { return expression; }
     / command_expression
 command_expression
-    = filter / map / print / length / collect / get
+    = filter / map / print / length / collect / get / rename / range
 
 // COMMANDS
 
@@ -41,7 +41,7 @@ map
     = 'map' __ args:map_args
         { return new MapCommand(args, context); }
 map_args
-    = iteration_variable:object_key __ 'in' __ iteration_target:iterable_value __ 'to' __ command:command
+    = iteration_variable:object_key __ 'in' __ iteration_target:iterable_value __ 'into' __ command:command
         { return new MapArgs(iteration_variable, iteration_target, command); }
 
 // print - converts Value<any> to Value<string>
@@ -91,10 +91,30 @@ get
     = 'get' __ args:get_args
         { return new GetCommand(args, context); }
 get_args
-    = key:object_key __ 'from' __ value:value 
+    = key:value __ 'from' __ value:value 
         { return new GetArgs(value, key); }
 
+// rename - universal renaming tool
+rename
+    = 'rename' __ args:rename_args
+        { return new RenameCommand(args, context); }
+rename_args
+    = object:value __ 'to' __ newName:string
+        { return new RenameArgs(object, newName); }
 
+range
+    = 'range' __ args:range_args
+        { return new RangeCommand(args, context); }
+range_args
+    = from:value __ 'to' __ to:value __ 'step' __ step:value
+        { return new RangeArgs(to, from, step); }
+    / from:value __ 'to' __ to:value
+        { return new RangeArgs(to, from, new Value('number', 1)); }
+    / to:value __ 'step' __ step:value
+        { return new RangeArgs(to, new Value('number', 0), step); }
+    / to:value
+        { return new RangeArgs(to, new Value('number', 0), new Value('number', 1)); }
+    
 // RELATED TO COMMANDS
 iterable_value
     = '(' expression:iterable_expression ')'
@@ -107,6 +127,7 @@ iterable_expression
     // These return Value<iterable> instances
     = filter
     / map
+    / range
     // Thesre return predefined Value<iterable> instance
     / 'users'
         { return new Value('iterable', 'users'); }
