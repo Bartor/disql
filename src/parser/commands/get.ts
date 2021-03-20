@@ -1,7 +1,8 @@
 import { Message } from "discord.js";
 import { Command } from "../model/command";
+import { ErrorValue } from "../model/error";
 import { ExecutionContext, Resolvable } from "../model/execution-context";
-import { isValueType, ResolvedValue, Value } from "../model/value";
+import { isValueType, ResolvedValue, Value } from "../model/values";
 
 export class GetArgs {
   constructor(public value: Value, public key: Value) {}
@@ -15,7 +16,7 @@ export class GetCommand implements Command, Resolvable {
     const [, value] = await this.args.value.resolve(this.context, message);
 
     if (value === undefined) {
-      return new Value("error", `Cannot get ${key} from undefined`);
+      return new ErrorValue(`Cannot get ${key} from undefined`);
     }
 
     const valueType = typeof value;

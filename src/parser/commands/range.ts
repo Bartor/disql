@@ -1,7 +1,8 @@
 import { Message } from "discord.js";
 import { Command } from "../model/command";
+import { ErrorValue } from "../model/error";
 import { ExecutionContext, Resolvable } from "../model/execution-context";
-import { ResolvedValue, Value } from "../model/value";
+import { ResolvedValue, Value } from "../model/values";
 
 export class RangeArgs {
   constructor(public to: Value, public from: Value, public step: Value) {}
@@ -22,7 +23,7 @@ export class RangeCommand implements Command, Resolvable {
     ]);
 
     if (toType !== "number" || fromType !== "number" || stepType !== "number") {
-      throw "All range arguments must be numbers";
+      return new ErrorValue("All range parameters must be numbers");
     }
 
     const negative = from > to;

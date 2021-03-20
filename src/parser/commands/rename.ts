@@ -6,8 +6,9 @@ import {
   Role,
 } from "discord.js";
 import { Command } from "../model/command";
+import { ErrorValue } from "../model/error";
 import { ExecutionContext, Resolvable } from "../model/execution-context";
-import { ResolvedValue, Value } from "../model/value";
+import { ResolvedValue, Value } from "../model/values";
 
 export class RenameArgs {
   constructor(public object: Value, public newName: Value) {}
@@ -24,7 +25,7 @@ export class RenameCommand implements Command, Resolvable {
     );
 
     if (newNameType !== "string") {
-      throw "Cannot rename to non-string value";
+      return new ErrorValue("Can only rename to string values");
     }
 
     try {
@@ -35,7 +36,7 @@ export class RenameCommand implements Command, Resolvable {
       } else if (object instanceof Role) {
         await object.setName(newName);
       } else {
-        throw "Given object cannot be renamed";
+        return new ErrorValue("Given object cannot be renamed");
       }
     } catch (e) {
       if (e instanceof DiscordAPIError) {
@@ -46,7 +47,7 @@ export class RenameCommand implements Command, Resolvable {
           }`
         );
       } else {
-        return new Value("error", e);
+        return new ErrorValue(e);
       }
     }
 

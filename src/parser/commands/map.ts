@@ -1,7 +1,8 @@
 import { Message } from "discord.js";
+import { assertType } from "../misc/assertType";
 import { Command } from "../model/command";
 import { ExecutionContext, Resolvable } from "../model/execution-context";
-import { ResolvedValue, Value } from "../model/value";
+import { ResolvedValue, Value } from "../model/values";
 
 export class MapArgs {
   constructor(
@@ -17,12 +18,15 @@ export class MapCommand implements Command, Resolvable {
 
   async execute(message: Message): Promise<Value> {
     const result = [];
-    const [, iterationElements] = await this.args.iterationTarget.resolve(
+    const [iterableType, iterable] = await this.args.iterationTarget.resolve(
       this.context,
       message
     );
 
-    for (let [index, element] of iterationElements.entries()) {
+    const iterableAssertion = assertType(iterableType, "iterable");
+    if (iterableAssertion) return Value.fromResolved(iterableAssertion);
+
+    for (let [index, element] of iterable.entries()) {
       this.context.pushVariable(this.args.variableIdentifier, element);
       if (this.args.indexIdentifier) {
         this.context.pushVariable(

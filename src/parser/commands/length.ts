@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import { Command } from "../model/command";
 import { ExecutionContext, Resolvable } from "../model/execution-context";
-import { ResolvedValue, Value } from "../model/value";
+import { ResolvedValue, Value } from "../model/values";
 
 export class LengthArgs {
   constructor(public value: Value) {}

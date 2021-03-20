@@ -1,9 +1,9 @@
 export const PARSER_IMPORTS = `
-import { FilterCommand, FilterArgs } from '../commands/list';
-import { FilterCase, FilterCaseUnion, PassFilterCase } from '../commands/subcommands/filter';
-import { Value } from '../model/value';
+import { FilterCommand, FilterArgs } from '../commands/filter';
+import { Value } from '../model/values';
+import { Comparison, ComparisonUnion } from '../model/comparisons';
 import { ExecutionContext } from '../model/execution-context';
-import { MapCommand, MapArgs } from '../commands/for-in-do';
+import { MapCommand, MapArgs } from '../commands/map';
 import { LengthCommand, LengthArgs } from '../commands/length';
 import { CollectCommand, CollectArgs, CollectField } from '../commands/collect';
 import { GetCommand, GetArgs } from '../commands/get';

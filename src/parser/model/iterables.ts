@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { Value } from "./value";
+import { Value } from "./values";
 
 const getUsersIterable = (message: Message) =>
   message.guild.members.cache.array().map((e) => new Value("object", e));

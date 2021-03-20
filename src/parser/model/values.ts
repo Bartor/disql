@@ -36,6 +36,10 @@ export class Value implements Resolvable {
     public readonly value: string | number | boolean | null | object
   ) {}
 
+  static fromResolved(resolved: ResolvedValue): Value {
+    return new Value(...resolved);
+  }
+
   async resolve(
     context: ExecutionContext,
     message: Message

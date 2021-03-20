@@ -21,20 +21,20 @@ filter
     = 'filter' __ args:filter_args
         { return new FilterCommand(args, context); }
 filter_args 
-    = iterable:iterable_value filters:filters?
-        { return new FilterArgs(iterable, filters ?? new PassFilterCase()); }
-filters
-    = __ 'on' __ filter:filter_union
-        { return filter; }
-filter_union
-    = '(' _ lhs:filter_union __ op:unions __ rhs:filter_union _ ')'
-        { return new FilterCaseUnion(lhs, op, rhs); }
-    / filter_case
-filter_case 
-    = key:object_key _ op:comparison _ value:value 
-        { return new FilterCase(key, op, value); }
-    / op:comparison _ value:value
-        { return new FilterCase(null, op, value); }
+    = iteration_variable:object_key _ ',' _ index_variable:object_key __ 'in' __ iteration_target:iterable_value __ 'on' __ value:value
+        { return new FilterArgs(iteration_variable, iteration_target, value, index_variable); }
+    / iteration_variable:object_key __ 'in' __ iteration_target:iterable_value __ 'on' __ value:value
+        { return new FilterArgs(iteration_variable, iteration_target, value); }
+
+comparison_union
+    = '(' _ lhs:comparison_union __ op:unions __ rhs:comparison_union ')'
+        { return new ComparisonUnion(lhs, op, rhs); }
+    / comparison
+
+// _ <op> y - takes an Value and compares it to a value
+comparison
+    = 'is' __ lhs:value __ op:comparison_operator __ rhs:value 
+        { return new Comparison(lhs, op, rhs); }
 
 // map .. in .. to - binds a Value<reference> to ExecutionContext for each item of IterableSource
 map
@@ -139,7 +139,7 @@ iterable_expression
         { return new Value('iterable', 'channels'); }
 unions
     = 'and' / 'or'
-comparison
+comparison_operator
     = '>=' / '<=' / '=' / '<>' / '>' / '<' 
 
 // VALUES
@@ -161,17 +161,20 @@ value_expression
         { return new Value('number', num); }
     / str:string 
         { return new Value('string', str); }
-    / boolean:boolean
-        { return new Value('boolean', boolean); }
+    / boolean
     / null 
         { return new Value('null', null); }
     / reference:object_key
         { return new Value('reference', reference); }
 boolean
-    = 'true'
-        { return true; }
+    // These resturn Value<boolean> instances
+    = comparison
+    / comparison_union
+    // Literals
+    / 'true'
+        { return new Value('boolean', true); }
     / 'false'
-        { return false; }
+        { return new Value('boolean', false); }
 null
     = 'null'
 object_key

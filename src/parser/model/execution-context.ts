@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { ResolvedValue, Value } from "./value";
+import { ResolvedValue, Value } from "./values";
 
 export class ExecutionContext {
   private variables: Record<string, Value | undefined> = {};
@@ -12,6 +12,9 @@ export class ExecutionContext {
   }
 
   public pushVariable(identifier: string, value: Value) {
+    if (this.variables[identifier] !== undefined)
+      throw `Variable ${identifier} is already declared`;
+
     this.variables[identifier] = value;
   }
 
@@ -21,5 +24,8 @@ export class ExecutionContext {
 }
 
 export interface Resolvable {
-  resolve: (context: ExecutionContext, message: Message) => Promise<ResolvedValue>;
+  resolve: (
+    context: ExecutionContext,
+    message: Message
+  ) => Promise<ResolvedValue>;
 }
