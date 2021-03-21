@@ -1,4 +1,4 @@
-// Initialize a default execution context
+// Initializes a default, empty execution context
 {
 const context = new ExecutionContext();
 }
@@ -16,7 +16,7 @@ command_expression
 
 // COMMANDS
 
-// list - takes an IterableSource, allows filters and returns IterableSource 
+// filter <variable>[, <index>] in <iterable> on <boolean> - filters given iterable based on boolean expression value 
 filter
     = 'filter' __ args:filter_args
         { return new FilterCommand(args, context); }
@@ -26,17 +26,7 @@ filter_args
     / iteration_variable:object_key __ 'in' __ iteration_target:iterable_value __ 'on' __ value:value
         { return new FilterArgs(iteration_variable, iteration_target, value); }
 
-comparison_union
-    = '(' _ lhs:comparison_union __ op:unions __ rhs:comparison_union ')'
-        { return new ComparisonUnion(lhs, op, rhs); }
-    / comparison
-
-// _ <op> y - takes an Value and compares it to a value
-comparison
-    = 'is' __ lhs:value __ op:comparison_operator __ rhs:value 
-        { return new Comparison(lhs, op, rhs); }
-
-// map .. in .. to - binds a Value<reference> to ExecutionContext for each item of IterableSource
+// map <value> [, <index>] in <iterable> into <command> - runs command for each value and returns its result as a new iterable
 map
     = 'map' __ args:map_args
         { return new MapCommand(args, context); }
@@ -46,7 +36,7 @@ map_args
     / iteration_variable:object_key __ 'in' __ iteration_target:iterable_value __ 'into' __ command:command
         { return new MapArgs(iteration_variable, iteration_target, command); }
 
-// print - converts Value<any> to Value<string>
+// print <value> - returns the value converted to string
 print
     = 'print' __ args:print_args
         { return new PrintCommand(args, context); }
@@ -54,7 +44,7 @@ print_args
     = value:value
         { return new PrintArgs(value); }
 
-// length - return Value<number> of length of Value
+// length <value> - returns length of a value if applicable, -1 otherwise
 length
     = 'length' __ args:legnth_args
         { return new LengthCommand(args, context); }
@@ -62,7 +52,7 @@ legnth_args
     = value:value
         { return new LengthArgs(value); }
 
-// get - returns field value
+// get <key> from <value> - returns a value under object's key
 get
     = 'get' __ args:get_args
         { return new GetCommand(args, context); }
@@ -70,7 +60,7 @@ get_args
     = key:value __ 'from' __ value:value 
         { return new GetArgs(value, key); }
 
-// rename - universal renaming tool
+// rename <value> to <value> - renames a User, Channel or Role to new (nick)name
 rename
     = 'rename' __ args:rename_args
         { return new RenameCommand(args, context); }
@@ -78,6 +68,8 @@ rename_args
     = object:value __ 'to' __ newName:value
         { return new RenameArgs(object, newName); }
 
+// range <to> [step <step = 1>]
+// range <from> to <to> [step <step = 1>] - creates an iterable of numbers from value to value with a given step
 range
     = 'range' __ args:range_args
         { return new RangeCommand(args, context); }
@@ -90,8 +82,9 @@ range_args
         { return new RangeArgs(to, new Value('number', 0), step); }
     / to:value
         { return new RangeArgs(to, new Value('number', 0), new Value('number', 1)); }
-    
-// RELATED TO COMMANDS
+
+// EXPRESSIONS
+
 iterable_value
     = '(' expression:iterable_expression ')'
         { return expression; }
@@ -100,24 +93,21 @@ iterable_value
     / iterable_expression
 
 iterable_expression
-    // These return Value<iterable> instances
+    // Commands/expressions which return an iterable
     = filter
     / map
     / range
     / get
     / array
-    // Thesre return predefined Value<iterable> instance
+    // Literals
     / 'users'
         { return new Value('iterable', 'users'); }
     / 'roles'
         { return new Value('iterable', 'roles'); }
     / 'channels'
         { return new Value('iterable', 'channels'); }
-unions
-    = 'and' / 'or'
-comparison_operator
-    = '>=' / '<=' / '=' / '<>' / '>' / '<' / 'in'
 
+// { <key1>: <value1>, ... } - contructs a dictionary
 dict
     = '{' _ args:dict_args _ '}'
         { return new Dict(args); }
@@ -133,6 +123,7 @@ dict_field
     = key:object_key _ ':' _ value:value
         { return {[key]: value}; }
 
+// [<value1>, <value2>, <value3>, ...] - contructs an array
 array
     = '[' _ args:array_args _ ']'
         { return new ValueArray(args); }
@@ -147,6 +138,21 @@ array_some_elements
 array_element
     = value
 
+// <boolean> and/or <boolean> - constructs a logical union of booleans
+comparison_union
+    = '(' _ lhs:comparison_union __ op:unions __ rhs:comparison_union ')'
+        { return new ComparisonUnion(lhs, op, rhs); }
+    / comparison
+unions
+    = 'and' / 'or'
+
+// <boolean> <op> <boolean> - comparison of booleans
+comparison
+    = 'is' __ lhs:value __ op:comparison_operator __ rhs:value 
+        { return new Comparison(lhs, op, rhs); }
+comparison_operator
+    = '>=' / '<=' / '=' / '<>' / '>' / '<' / 'in'
+
 // VALUES
 value
     = '(' expression:value_expression ')'
@@ -155,14 +161,14 @@ value
         { return expression; }
     / value_expression
 value_expression
-    // These return Value<iterable> instances
+    // Commands that return a value
     = iterable_value
     / print
     / length
     / dict
     / get
     / array
-    // These return regular Value instances
+    // Literals
     / discord_value
     / boolean
     / null
@@ -173,6 +179,7 @@ value_expression
         { return new Value('string', str); }
     / num:number
         { return new Value('number', num); }
+// Parses @ and # from messages
 discord_value
     = '<@' id:[0-9]+ '>'
         { return new DiscordUser(id.join('')); }
@@ -183,7 +190,7 @@ discord_value
     / '<@&' id:[0-9]+ '>'
         { return new DiscordRole(id.join('')); }
 boolean
-    // These resturn Value<boolean> instances
+    // Commands that return booleans
     = comparison
     / comparison_union
     // Literals
