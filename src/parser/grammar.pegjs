@@ -12,7 +12,7 @@ command
         { return expression; }
     / command_expression
 command_expression
-    = filter / map / print / length / collect / get / rename / range
+    = filter / map / print / length / get / rename / range 
 
 // COMMANDS
 
@@ -51,18 +51,8 @@ print
     = 'print' __ args:print_args
         { return new PrintCommand(args, context); }
 print_args
-    = value:value _ fields:print_object_fields?
-        { return new PrintArgs(value, fields); }
-print_object_fields
-    = '(' _ fields:print_some_fields? _ ')'
-        { return fields; }
-print_some_fields
-    = head:print_field _ ',' _ tail:print_some_fields
-        { return [head, ...tail]; }
-    / field:print_field
-        { return [field]; }
-print_field
-    = value
+    = value:value
+        { return new PrintArgs(value); }
 
 // length - return Value<number> of length of Value
 length
@@ -71,22 +61,6 @@ length
 legnth_args
     = value:value
         { return new LengthArgs(value); }
-
-// colect - returns a map of properties/values pairs
-collect
-    = 'collect' __ args:collect_args
-        { return new CollectCommand(args, context); }
-collect_args
-    = '{' _ fields:collect_some_fields? _ '}'
-        { return new CollectArgs(fields); }
-collect_some_fields
-    = head:collect_field _ ',' _ tail:collect_some_fields
-        { return [head, ...tail]; }
-    / field:collect_field
-        { return [field]; }
-collect_field
-    = key:object_key _ ':' _ value:value
-        { return new CollectField(key, value); }
 
 // get - returns field value
 get
@@ -131,6 +105,7 @@ iterable_expression
     / map
     / range
     / get
+    / array
     // Thesre return predefined Value<iterable> instance
     / 'users'
         { return new Value('iterable', 'users'); }
@@ -142,6 +117,35 @@ unions
     = 'and' / 'or'
 comparison_operator
     = '>=' / '<=' / '=' / '<>' / '>' / '<' / 'in'
+
+dict
+    = '{' _ args:dict_args _ '}'
+        { return new Dict(args); }
+dict_args
+    = fields:dict_some_fields?
+        { return new DictArgs(fields); }
+dict_some_fields
+    = head:dict_field _ ',' _ tail:dict_some_fields
+        { return [head, ...tail]; }
+    / field:dict_field
+        { return [field]; }
+dict_field
+    = key:object_key _ ':' _ value:value
+        { return {[key]: value}; }
+
+array
+    = '[' _ args:array_args _ ']'
+        { return new ValueArray(args); }
+array_args
+    = elements:array_some_elements?
+        { return elements ?? []; }
+array_some_elements
+    = head:array_element _ ',' _ tail:array_some_elements
+        { return [head, ...tail]; }
+    / element:array_element
+        { return [element]; }
+array_element
+    = value
 
 // VALUES
 value
@@ -155,8 +159,9 @@ value_expression
     = iterable_value
     / print
     / length
-    / collect
+    / dict
     / get
+    / array
     // These return regular Value instances
     / discord_value
     / boolean
@@ -197,8 +202,15 @@ string
     / "'" chars:[^']+ "'"
         { return chars.join(''); }
 number
-    = integral:('0' / [1-9][0-9]*) fraction:("." [0-9]*)? 
-        { return Number.parseFloat((Array.isArray(integral) ? integral.flat().join('') : integral) + (fraction ?? []).flat().join('')); }
+    = sign:'-'? integral:('0' / [1-9][0-9]*) fraction:("." [0-9]*)? 
+        { 
+            const result = Number.parseFloat((Array.isArray(integral) ? integral.flat().join('') : integral) + (fraction ?? []).flat().join(''));
+            if (sign === null) {
+                return result;
+            } else {
+                return -result;
+            }
+        }
 _
     = ' '*
 __

@@ -1,7 +1,6 @@
-import { Base, Collection, GuildChannel, Message } from "discord.js";
+import { Collection, Message } from "discord.js";
 import { ExecutionContext, Resolvable } from "./execution-context";
 import { iterableObjects } from "./iterables";
-import { inspect } from "util";
 
 export type ValueType =
   | "number"
@@ -70,7 +69,7 @@ export class Value implements Resolvable {
     return resolved;
   }
 
-  public toString(): string {
+  public toString() {
     if (this.value === null) {
       return "null";
     }
@@ -84,9 +83,9 @@ export class Value implements Resolvable {
         return `ERROR: ${this.value}`;
       case "iterable":
         if (this.value instanceof Collection) {
-          return `[\n${this.value.array().join("\n")}\n]`;
+          return `[\n${this.value.array().join(",\n")}\n]`;
         } else {
-          return `[\n${(this.value as Array<any>).join("\n")}\n]`;
+          return `[\n${(this.value as Array<any>).join(",\n")}\n]`;
         }
       case "object":
         if ((this.value as object).toString === Object.prototype.toString) {

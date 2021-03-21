@@ -7,11 +7,11 @@ import {
 } from "../configuration";
 import { loadSecrets } from "./config/loader";
 import { Command } from "./parser/model/command";
-import { Value } from "./parser/model/values";
+import { ExecutionContext } from "./parser/model/execution-context";
+
 const parser = require("./parser/generated/parser");
 
 const client = new Discord.Client();
-export const CLIENT_INSTANCE = client;
 
 client.on("ready", () => {
   console.log(`Logged in as ${client.user.username}`);
@@ -34,7 +34,12 @@ client.on("message", async (message) => {
     const commandResult = await parsingResult.execute(message);
     const executionTime = process.hrtime(executionStart);
 
-    // console.log("RESULT:", inspect(commandResult, false, null, true));
+    console.log("RESULT:", inspect(commandResult, false, 1, true));
+
+    const [resultType, resultValue] = await commandResult.resolve(
+      new ExecutionContext(), // no variables should be bound there
+      message
+    );
 
     const title = "Execution result";
     const desc = `Parsed in ${parseTime[0]}.${
@@ -50,12 +55,11 @@ client.on("message", async (message) => {
       .setFooter(footer)
       .setTimestamp();
 
-    switch (commandResult.type) {
+    switch (resultType) {
       case "iterable":
-        const values = commandResult.value as Array<Value>;
-        if (values.length > 25) {
+        if (resultValue.length > 25) {
           const fieldTitle = "Results";
-          const resultString = commandResult.value.toString();
+          const resultString = resultValue.toString();
           const fieldValue =
             replyLength + fieldTitle.length + resultString.length >
             MAX_EMBED_FIELD_LENGTH
@@ -67,7 +71,7 @@ client.on("message", async (message) => {
           reply.addField(fieldTitle, fieldValue);
         } else {
           let totalLength = replyLength;
-          for (let [index, value] of values.entries()) {
+          for (let [index, value] of resultValue.entries()) {
             const fieldTitle = `#${index}`;
             const resultString = value.toString();
             const fieldValue =
@@ -96,7 +100,7 @@ client.on("message", async (message) => {
         break;
       default:
         const fieldTitle = "Result";
-        const resultString = commandResult.value.toString();
+        const resultString = resultValue.toString();
         const fieldValue =
           replyLength + fieldTitle.length + resultString.length >
           MAX_EMBED_FIELD_LENGTH
