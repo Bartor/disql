@@ -25,9 +25,13 @@ export class FilterCommand implements Command, Resolvable {
     const iterationAssertion = assertType(iterableType, "iterable");
     if (iterationAssertion) return Value.fromResolved(iterationAssertion);
 
+    // Possible improvement: use generators
     const result = [];
     for (let [index, element] of iterable.entries()) {
-      this.context.pushVariable(this.args.iterationVariable, element);
+      this.context.pushVariable(
+        this.args.iterationVariable,
+        element instanceof Value ? element : new Value("object", element)
+      );
       if (this.args.iteratorVariable)
         this.context.pushVariable(
           this.args.iteratorVariable,

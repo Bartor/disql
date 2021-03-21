@@ -2,6 +2,7 @@ export const PARSER_IMPORTS = `
 import { FilterCommand, FilterArgs } from '../commands/filter';
 import { Value } from '../model/values';
 import { Comparison, ComparisonUnion } from '../model/comparisons';
+import { DiscordChannel, DiscordUser, DiscordRole } from '../model/discord/resolvers';
 import { ExecutionContext } from '../model/execution-context';
 import { MapCommand, MapArgs } from '../commands/map';
 import { LengthCommand, LengthArgs } from '../commands/length';

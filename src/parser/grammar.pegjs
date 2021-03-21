@@ -130,6 +130,7 @@ iterable_expression
     = filter
     / map
     / range
+    / get
     // Thesre return predefined Value<iterable> instance
     / 'users'
         { return new Value('iterable', 'users'); }
@@ -140,7 +141,7 @@ iterable_expression
 unions
     = 'and' / 'or'
 comparison_operator
-    = '>=' / '<=' / '=' / '<>' / '>' / '<' 
+    = '>=' / '<=' / '=' / '<>' / '>' / '<' / 'in'
 
 // VALUES
 value
@@ -157,15 +158,25 @@ value_expression
     / collect
     / get
     // These return regular Value instances
-    / num:number
-        { return new Value('number', num); }
-    / str:string 
-        { return new Value('string', str); }
+    / discord_value
     / boolean
-    / null 
+    / null
         { return new Value('null', null); }
     / reference:object_key
         { return new Value('reference', reference); }
+    / str:string 
+        { return new Value('string', str); }
+    / num:number
+        { return new Value('number', num); }
+discord_value
+    = '<@' id:[0-9]+ '>'
+        { return new DiscordUser(id.join('')); }
+    / '<@!' id:[0-9]+ '>'
+        { return new DiscordUser(id.join('')); }
+    / '<#' id:[0-9]+ '>'
+        { return new DiscordChannel(id.join('')); }
+    / '<@&' id:[0-9]+ '>'
+        { return new DiscordRole(id.join('')); }
 boolean
     // These resturn Value<boolean> instances
     = comparison

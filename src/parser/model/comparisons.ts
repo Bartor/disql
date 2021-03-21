@@ -13,6 +13,7 @@ const operatorMap: Record<
   "<": (compare, compareWith) => compare < compareWith,
   ">=": (compare, compareWith) => compare >= compareWith,
   "<=": (compare, compareWith) => compare <= compareWith,
+  in: (compare, compareWith) => compareWith.includes(compare),
 };
 
 export class Comparison implements Resolvable {

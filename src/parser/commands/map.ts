@@ -17,7 +17,6 @@ export class MapCommand implements Command, Resolvable {
   constructor(private args: MapArgs, private context: ExecutionContext) {}
 
   async execute(message: Message): Promise<Value> {
-    const result = [];
     const [iterableType, iterable] = await this.args.iterationTarget.resolve(
       this.context,
       message
@@ -26,8 +25,13 @@ export class MapCommand implements Command, Resolvable {
     const iterableAssertion = assertType(iterableType, "iterable");
     if (iterableAssertion) return Value.fromResolved(iterableAssertion);
 
+    // Possible improvement: use generators
+    const result = [];
     for (let [index, element] of iterable.entries()) {
-      this.context.pushVariable(this.args.variableIdentifier, element);
+      this.context.pushVariable(
+        this.args.variableIdentifier,
+        element instanceof Value ? element : new Value("object", element)
+      );
       if (this.args.indexIdentifier) {
         this.context.pushVariable(
           this.args.indexIdentifier,

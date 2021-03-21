@@ -1,8 +1,8 @@
-import { Message } from "discord.js";
+import { Collection, Message } from "discord.js";
 import { Command } from "../model/command";
 import { ErrorValue } from "../model/error";
 import { ExecutionContext, Resolvable } from "../model/execution-context";
-import { isValueType, ResolvedValue, Value } from "../model/values";
+import { isValueType, ResolvedValue, Value, ValueType } from "../model/values";
 
 export class GetArgs {
   constructor(public value: Value, public key: Value) {}
@@ -19,9 +19,14 @@ export class GetCommand implements Command, Resolvable {
       return new ErrorValue(`Cannot get ${key} from undefined`);
     }
 
-    const valueType = typeof value;
-    if (isValueType(valueType)) {
-      return new Value(valueType, value[key]);
+    const typeOfValue = typeof value[key];
+
+    if (value[key] instanceof Collection) {
+      return new Value("iterable", value[key]);
+    }
+
+    if (isValueType(typeOfValue)) {
+      return new Value(typeOfValue, value[key]);
     } else {
       return new Value("object", value[key]);
     }

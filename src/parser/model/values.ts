@@ -1,4 +1,4 @@
-import { Base, Message } from "discord.js";
+import { Base, Collection, GuildChannel, Message } from "discord.js";
 import { ExecutionContext, Resolvable } from "./execution-context";
 import { iterableObjects } from "./iterables";
 import { inspect } from "util";
@@ -55,7 +55,11 @@ export class Value implements Resolvable {
         if (typeof this.value === "string") {
           resolved = ["iterable", iterableObjects[this.value](message)];
         } else {
-          resolved = [this.type, this.value];
+          if (this.value instanceof Collection) {
+            resolved = [this.type, this.value.array()];
+          } else {
+            resolved = [this.type, this.value];
+          }
         }
         break;
       default:
@@ -67,17 +71,36 @@ export class Value implements Resolvable {
   }
 
   public toString(): string {
+    if (this.value === null) {
+      return "null";
+    }
+
+    if (this.value === undefined) {
+      return "undefined";
+    }
+
     switch (this.type) {
       case "error":
         return `ERROR: ${this.value}`;
       case "iterable":
-        return `[\n${(this.value as Array<Value>).join("\n")}\n]`;
+        if (this.value instanceof Collection) {
+          return `[\n${this.value.array().join("\n")}\n]`;
+        } else {
+          return `[\n${(this.value as Array<any>).join("\n")}\n]`;
+        }
       case "object":
-        return inspect(this.value, false, null, false);
+        if ((this.value as object).toString === Object.prototype.toString) {
+          let result = "{\n";
+          Object.entries(this.value).forEach(([key, value]) => {
+            result += `\t${key}: ${value}\n`;
+          });
+          result += "}";
+          return result;
+        } else {
+          return this.value.toString();
+        }
       case "string":
         return this.value as string;
-      case "null":
-        return "NULL";
       default:
         return this.value.toString();
     }
