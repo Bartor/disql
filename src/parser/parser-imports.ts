@@ -6,6 +6,7 @@ import { LengthCommand, LengthArgs } from '../commands/length';
 import { GetCommand, GetArgs } from '../commands/get';
 import { PrintCommand, PrintArgs } from '../commands/print';
 import { RenameCommand, RenameArgs } from '../commands/rename';
+import { AssignRoleCommand, AssignRoleArgs } from '../commands/assign-role';
 import { RangeCommand, RangeArgs } from '../commands/range';
 
 import { ExecutionContext } from '../model/execution-context';

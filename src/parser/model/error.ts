@@ -5,3 +5,10 @@ export class ErrorValue extends Value {
     super("error", message);
   }
 }
+
+export class UnhandledError extends Value {
+  constructor(error: any) {
+    super("error", "An unhandled error occurred; check console");
+    console.error(error);
+  }
+}

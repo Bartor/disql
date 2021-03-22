@@ -6,7 +6,7 @@ import {
   Role,
 } from "discord.js";
 import { Command } from "../model/command";
-import { ErrorValue } from "../model/error";
+import { ErrorValue, UnhandledError } from "../model/error";
 import { ExecutionContext, Resolvable } from "../model/execution-context";
 import { ResolvedValue, Value } from "../model/values";
 
@@ -40,14 +40,13 @@ export class RenameCommand implements Command, Resolvable {
       }
     } catch (e) {
       if (e instanceof DiscordAPIError) {
-        return new Value(
-          "error",
+        return new ErrorValue(
           `Couldn't rename ${object.name ?? object.id ?? ""}, reason: ${
             e.message
           }`
         );
       } else {
-        return new ErrorValue(e);
+        return new UnhandledError(e);
       }
     }
 

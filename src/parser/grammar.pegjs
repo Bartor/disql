@@ -12,7 +12,7 @@ command
         { return expression; }
     / command_expression
 command_expression
-    = filter / map / print / length / get / rename / range 
+    = filter / map / print / length / get / rename / range / assign_role
 
 // COMMANDS
 
@@ -60,14 +60,6 @@ get_args
     = key:value __ 'from' __ value:value 
         { return new GetArgs(value, key); }
 
-// rename <value> to <value> - renames a User, Channel or Role to new (nick)name
-rename
-    = 'rename' __ args:rename_args
-        { return new RenameCommand(args, context); }
-rename_args
-    = object:value __ 'to' __ newName:value
-        { return new RenameArgs(object, newName); }
-
 // range <to> [step <step = 1>]
 // range <from> to <to> [step <step = 1>] - creates an iterable of numbers from value to value with a given step
 range
@@ -82,6 +74,24 @@ range_args
         { return new RangeArgs(to, new Value('number', 0), step); }
     / to:value
         { return new RangeArgs(to, new Value('number', 0), new Value('number', 1)); }
+
+// DISCORD COMMANDS
+
+// rename <value> to <value> - renames a User, Channel or Role to new (nick)name
+rename
+    = 'rename' __ args:rename_args
+        { return new RenameCommand(args, context); }
+rename_args
+    = object:value __ 'to' __ newName:value
+        { return new RenameArgs(object, newName); }
+
+// assign <value> to <value> - assigns a role to a user
+assign_role
+    = 'assign' __ args:assign_role_args
+        { return new AssignRoleCommand(args, context); }
+assign_role_args
+    = role:value __ 'to' __ user:value
+        { return new AssignRoleArgs(role, user); }
 
 // EXPRESSIONS
 
@@ -204,9 +214,9 @@ object_key
     = key:[_$a-zA-Z]+[_$a-zA-Z0-9]* 
         { return key.flat().join(''); }
 string
-    = '"' chars:[^"]+ '"' 
+    = '"' chars:[^"]* '"' 
         { return chars.join(''); }
-    / "'" chars:[^']+ "'"
+    / "'" chars:[^']* "'"
         { return chars.join(''); }
 number
     = sign:'-'? integral:('0' / [1-9][0-9]*) fraction:("." [0-9]*)? 
